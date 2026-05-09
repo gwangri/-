@@ -1,0 +1,91 @@
+import pandas as pd
+import json
+
+# 1. 데이터 불러오기
+file_name = '연령층 별 교통사고 건 수.csv'
+df = pd.read_csv(file_name)
+
+# 2. 데이터를 자바스크립트에서 쓸 수 있도록 JSON 형태로 변환
+data_json = df.to_json(orient='records', force_ascii=False)
+
+# 3. HTML 템플릿 작성 (Javascript 포함)
+html_template = f"""
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>교통사고 데이터 조회</title>
+    <style>
+        body {{ font-family: sans-serif; padding: 20px; line-height: 1.6; }}
+        .container {{ max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 8px; }}
+        select, input {{ padding: 10px; width: 100%; margin-bottom: 20px; box-sizing: border-box; }}
+        table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
+        th, td {{ border: 1px solid #ddd; padding: 12px; text-align: left; }}
+        th {{ background-color: #f4f4f4; }}
+        .no-data {{ color: red; font-weight: bold; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>교통사고 데이터 조회</h2>
+        <p>조회할 <strong>연령층</strong>을 선택하세요:</p>
+        
+        <select id="ageSelect" onchange="showData()">
+            <option value="">-- 연령층 선택 --</option>
+        </select>
+
+        <div id="result">
+            <p>연령층을 선택하면 데이터가 표시됩니다.</p>
+        </div>
+    </div>
+
+    <script>
+        // 파이썬에서 넘겨준 데이터
+        const data = {data_json};
+
+        // 셀렉트 박스 옵션 채우기
+        const select = document.getElementById('ageSelect');
+        data.forEach(item => {{
+            const option = document.createElement('option');
+            option.value = item.가해자연령층;
+            option.textContent = item.가해자연령층;
+            select.appendChild(option);
+        }});
+
+        // 데이터 표시 함수
+        function showData() {{
+            const selectedAge = select.value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!selectedAge) {{
+                resultDiv.innerHTML = "<p>연령층을 선택해주세요.</p>";
+                return;
+            }}
+
+            const filtered = data.find(item => item.가해자연령층 === selectedAge);
+
+            if (filtered) {{
+                resultDiv.innerHTML = `
+                    <table>
+                        <tr><th>항목</th><th>값</th></tr>
+                        <tr><td>사고건수</td><td>${{filtered.사고건수}}</td></tr>
+                        <tr><td>사망자수</td><td>${{filtered.사망자수}}</td></tr>
+                        <tr><td>중상자수</td><td>${{filtered.중상자수}}</td></tr>
+                        <tr><td>경상자수</td><td>${{filtered.경상자수}}</td></tr>
+                        <tr><td>부상신고자수</td><td>${{filtered.부상신고자수}}</td></tr>
+                    </table>
+                `;
+            }} else {{
+                resultDiv.innerHTML = "<p class='no-data'>해당 데이터가 없습니다.</p>";
+            }}
+        }
+    </script>
+</body>
+</html>
+"""
+
+# 4. HTML 파일 저장
+with open('accident_data.html', 'w', encoding='utf-8') as f:
+    f.write(html_template)
+
+print("성공적으로 'accident_data.html' 파일이 생성되었습니다.")
