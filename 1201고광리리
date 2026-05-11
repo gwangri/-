@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>연령별 교통사고 실시간 통계</title>
+<style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
+:root {
+    --primary: #2563eb;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #0f172a;
+}
+
+* { box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+
+body {
+    background-color: var(--bg);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    position: relative;
+    background: var(--card);
+    padding: 2.5rem;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 500px;
+}
+
+/* 1201 고광리 - 우측 구석 */
+.user-tag {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+}
+
+/* 실시간 상태 표시 */
+.live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: #10b981;
+    font-weight: 700;
+    margin-bottom: 10px;
+    justify-content: center;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    background-color: #10b981;
+    border-radius: 50%;
+    animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+
+h2 {
+    text-align: center;
+    margin: 0 0 2rem 0;
+    font-size: 1.5rem;
+    color: var(--text);
+}
+
+.form-group { margin-bottom: 1.5rem; }
+
+select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    outline: none;
+    cursor: pointer;
+    background-color: #fff;
+}
+
+#result { min-height: 200px; }
+
+.stat-card {
+    background: #f1f5f9;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 12px;
+}
+
+.time-stamp {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin-top: 15px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.item {
+    background: #fff;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.label { font-size: 0.8rem; color: #64748b; margin-bottom: 5px; }
+.value { font-size: 1.2rem; font-weight: 800; color: #1e293b; }
+.death { color: #ef4444; }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="user-tag">1201 고광리</div>
+    
+    <div class="live-indicator">
+        <div class="dot"></div> LIVE DATA ANALYSIS
+    </div>
+
+    <h2>📊 교통사고 통계 시스템</h2>
+
+    <div class="form-group">
+        <select id="ageSelect" onchange="updateView()">
+            <option value="">데이터를 선택하세요</option>
+        </select>
+    </div>
+
+    <div id="result">
+        <div style="text-align:center; color:#94a3b8; padding-top:50px;">연령별 통계를 불러오기 위해<br>항목을 선택해주세요.</div>
+    </div>
+</div>
+
+<script>
+const accidentData = [{"가해자연령층":"20세이하","사고건수":5567,"사망자수":49,"중상자수":1552,"경상자수":4655,"부상신고자수":1107},{"가해자연령층":"21-30세","사고건수":23045,"사망자수":280,"중상자수":6047,"경상자수":25423,"부상신고자수":2585},{"가해자연령층":"31-40세","사고건수":26735,"사망자수":261,"중상자수":6827,"경상자수":29249,"부상신고자수":2730},{"가해자연령층":"41-50세","사고건수":32535,"사망자수":337,"중상자수":8433,"경상자수":34667,"부상신고자수":2999},{"가해자연령층":"51-60세","사고건수":43312,"사망자수":558,"중상자수":11445,"경상자수":45727,"부상신고자수":3925},{"가해자연령층":"61-64세","사고건수":20223,"사망자수":274,"중상자수":5381,"경상자수":21390,"부상신고자수":1724},{"가해자연령층":"65-70세","사고건수":23358,"사망자수":369,"중상자수":6156,"경상자수":24989,"부상신고자수":2014},{"가해자연령층":"71세이상","사고건수":19011,"사망자수":392,"중상자수":5427,"경상자수":19453,"부상신고자수":1737},{"가해자연령층":"불명","사고건수":2563,"사망자수":1,"중상자수":285,"경상자수":1718,"부상신고자수":837}];
+
+const selectEl = document.getElementById('ageSelect');
+const resultEl = document.getElementById('result');
+
+accidentData.forEach(item => {
+    const opt = document.createElement('option');
+    opt.value = item.가해자연령층;
+    opt.textContent = item.가해자연령층;
+    selectEl.appendChild(opt);
+});
+
+function updateView() {
+    const val = selectEl.value;
+    if (!val) return;
+
+    const d = accidentData.find(i => i.가해자연령층 === val);
+    const now = new Date();
+    const timeStr = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+
+    resultEl.innerHTML = `
+        <div class="stat-card">
+            <div class="label">총 사고 건수</div>
+            <div class="value" style="font-size: 2rem; color: #2563eb;">${d.사고건수.toLocaleString()}</div>
+        </div>
+        <div class="grid">
+            <div class="item">
+                <div class="label">사망자</div>
+                <div class="value death">${d.사망자수.toLocaleString()}</div>
+            </div>
+            <div class="item">
+                <div class="label">중상자</div>
+                <div class="value">${d.중상자수.toLocaleString()}</div>
+            </div>
+            <div class="item">
+                <div class="label">경상자</div>
+                <div class="value">${d.경상자수.toLocaleString()}</div>
+            </div>
+            <div class="item">
+                <div class="label">부상신고</div>
+                <div class="value">${d.부상신고자수.toLocaleString()}</div>
+            </div>
+        </div>
+        <div class="time-stamp">마지막 조회 시각: ${timeStr}</div>
+    `;
+}
+</script>
+
+</body>
+</html>
