@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>연령별 교통사고 통계 조회</title>
+<style>
+:root {
+--primary-color: #4a90e2;
+--bg-color: #f5f7fa;
+--card-bg: #ffffff;
+}
+body {
+font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+background-color: var(--bg-color);
+margin: 0;
+display: flex;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+}
+.container {
+position: relative; /* 학번 위치 기준점 */
+background-color: var(--card-bg);
+padding: 2.5rem 2rem 2rem 2rem;
+border-radius: 16px;
+box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+width: 100%;
+max-width: 500px;
+}
+
+/* 추가 및 수정된 스타일: 오른쪽 구석에 배치 */
+.user-info {
+position: absolute;
+top: 15px;
+right: 20px;
+font-size: 0.85rem;
+color: #999;
+font-weight: normal;
+}
+
+h2 {
+color: #333;
+text-align: center;
+margin-bottom: 2rem;
+margin-top: 1rem;
+}
+.form-group {
+margin-bottom: 1.5rem;
+}
+label {
+display: block;
+margin-bottom: 0.5rem;
+font-weight: 600;
+color: #666;
+}
+select {
+width: 100%;
+padding: 12px;
+border: 2px solid #eee;
+border-radius: 8px;
+font-size: 1rem;
+outline: none;
+transition: border-color 0.3s;
+appearance: none;
+background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 12px center;
+background-color: white;
+}
+select:focus {
+border-color: var(--primary-color);
+}
+#result {
+margin-top: 1.5rem;
+border-top: 2px solid #f0f0f0;
+padding-top: 1rem;
+}
+.stat-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+}
+.stat-item {
+background: #f9fafb;
+padding: 15px;
+border-radius: 10px;
+text-align: center;
+}
+.stat-label {
+font-size: 0.85rem;
+color: #888;
+margin-bottom: 5px;
+}
+.stat-value {
+font-size: 1.2rem;
+font-weight: bold;
+color: #222;
+}
+.death { color: #e74c3c; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="user-info">1201 고광리</div>
+
+    <h2>🚦 교통사고 통계 조회</h2>
+
+    <div class="form-group">
+        <label for="ageSelect">연령층 선택</label>
+        <select id="ageSelect" onchange="updateView()">
+            <option value="">연령층을 골라주세요</option>
+        </select>
+    </div>
+
+    <div id="result">
+        <p style="text-align: center; color: #999;">연령층을 선택하면 통계 데이터가 나타납니다.</p>
+    </div>
+</div>
+
+<script>
+const accidentData = [{"가해자연령층":"20세이하","사고건수":5567,"사망자수":49,"중상자수":1552,"경상자수":4655,"부상신고자수":1107},{"가해자연령층":"21-30세","사고건수":23045,"사망자수":280,"중상자수":6047,"경상자수":25423,"부상신고자수":2585},{"가해자연령층":"31-40세","사고건수":26735,"사망자수":261,"중상자수":6827,"경상자수":29249,"부상신고자수":2730},{"가해자연령층":"41-50세","사고건수":32535,"사망자수":337,"중상자수":8433,"경상자수":34667,"부상신고자수":2999},{"가해자연령층":"51-60세","사고건수":43312,"사망자수":558,"중상자수":11445,"경상자수":45727,"부상신고자수":3925},{"가해자연령층":"61-64세","사고건수":20223,"사망자수":274,"중상자수":5381,"경상자수":21390,"부상신고자수":1724},{"가해자연령층":"65-70세","사고건수":23358,"사망자수":369,"중상자수":6156,"경상자수":24989,"부상신고자수":2014},{"가해자연령층":"71세이상","사고건수":19011,"사망자수":392,"중상자수":5427,"경상자수":19453,"부상신고자수":1737},{"가해자연령층":"불명","사고건수":2563,"사망자수":1,"중상자수":285,"경상자수":1718,"부상신고자수":837}];
+
+const selectEl = document.getElementById('ageSelect');
+const resultEl = document.getElementById('result');
+
+accidentData.forEach(item => {
+    const opt = document.createElement('option');
+    opt.value = item.가해자연령층;
+    opt.textContent = item.가해자연령층;
+    selectEl.appendChild(opt);
+});
+
+function updateView() {
+    const val = selectEl.value;
+    if (!val) {
+        resultEl.innerHTML = '<p style="text-align: center; color: #999;">연령층을 선택하면 통계 데이터가 나타납니다.</p>';
+        return;
+    }
+
+    const d = accidentData.find(i => i.가해자연령층 === val);
+
+    resultEl.innerHTML = `
+    <div class="stat-grid">
+        <div class="stat-item" style="grid-column: span 2; background: #eef2ff;">
+            <div class="stat-label">총 사고건수</div>
+            <div class="stat-value" style="font-size: 1.5rem; color: #4a90e2;">${d.사고건수.toLocaleString()}건</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">사망자수</div>
+            <div class="stat-value death">${d.사망자수.toLocaleString()}명</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">중상자수</div>
+            <div class="stat-value">${d.중상자수.toLocaleString()}명</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">경상자수</div>
+            <div class="stat-value">${d.경상자수.toLocaleString()}명</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">부상신고자수</div>
+            <div class="stat-value">${d.부상신고자수.toLocaleString()}명</div>
+        </div>
+    </div>`;
+}
+</script>
+
+</body>
+</html>
